@@ -4,6 +4,8 @@ const morgan = require("morgan");
 const helmet = require("helmet");
 const mongoose = require("mongoose");
 const app = express();
+const Menu = require("./router/menu");
+
 // Connect to MongoDB
 mongoose
   .connect(
@@ -23,6 +25,10 @@ app.get("/", (req: any, res: {json: (arg0: {message: string}) => void}) => {
     message: "Hello World",
   });
 });
+
+app.use("/api", Menu.default);
+
+
 
 const port = process.env.PORT || 1337;
 

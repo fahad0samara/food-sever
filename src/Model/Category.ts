@@ -41,18 +41,12 @@ const menuSchema: Schema = new Schema({
 const categorySchema: Schema = new Schema({
   name: {
     type: String,
+    unique: true,
     required: true,
   },
   description: {
     type: String,
-    required: true,
   },
-  items: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: "Menu",
-    },
-  ],
 });
 
 const Menu: Model<IMenu> = mongoose.model<IMenu>("Menu", menuSchema);
