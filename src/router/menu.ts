@@ -139,60 +139,74 @@ router.post("/menu", async (req, res) => {
   }
 });
 
+
+
+
 // Get all menu items
-router.get("/menu", async (req: any, res: any) => {
+router.post("/menu", async (req, res) => {
   try {
-    const menuItems = await Menu.find().populate("category");
-    res.json(menuItems);
+    const menuItem = new Menu(req.body);
+    const createdDate = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    menuItem.isNew = createdDate > thirtyDaysAgo; // set isNew field based on criteria
+    await menuItem.save();
+    res.json(menuItem);
   } catch (error) {
     console.error(error);
-    res.status(500).send("Error retrieving menu items.");
+    res.status(500).send("Error creating menu item.");
   }
 });
 
 // Get menu items by category
-router.get("/menu/:categoryId", async (req: any, res: any) => {
-  const {categoryId} = req.params;
+router.get('/menu/:categoryId', async (req: any, res: any) => {
+  const { categoryId } = req.params;
   const categoryDoc = await Category.findById(categoryId);
   if (!categoryDoc) {
-    return res.status(404).send("Category not found");
+    return res.status(404).send('Category not found');
   }
 
   try {
-    const menuItems = await Menu.find({category: categoryId}).populate(
-      "category"
-    );
+    const menuItems = await Menu.find({ category: categoryId }).populate('category');
     res.json(menuItems);
   } catch (error) {
     console.error(error);
-    res.status(500).send("Error retrieving menu items.");
+    res.status(500).send('Error retrieving menu items.');
   }
+
 });
 
 // get the category
 router.get("/categories", async (req, res) => {
   try {
-    const categories = await Category.find();
+    const categories = await Category.find()
     res.json(categories);
+
+
+    
+
   } catch (error) {
+   
     res.status(500).send({
       message: "Error retrieving categories.",
-      error: error,
+      error: error
     });
   }
+
 });
 
 router.post("/categories", async (req, res) => {
   try {
-    const {error, value} = categoryValidation(req.body);
+    const { error, value } = categoryValidation(req.body);
     if (error) {
-      return res.status(400).json({error: error.details[0].message});
+      return res.status(400).json({ error: error.details[0].message });
     }
 
     // Check if the category already exists
-    const category = await Category.findOne({_id: value.id});
+    const category = await Category.findOne({ _id: value.id });
     if (category) {
-      return res.status(400).json({message: "Category already exists"});
+      return res.status(400).json({ message: "Category already exists" });
+
     }
 
     const newCategory = new Category(value);
@@ -202,6 +216,11 @@ router.post("/categories", async (req, res) => {
       message: "Category created successfully",
       category: savedCategory,
     });
+    
+
+
+
+ 
   } catch (err) {
     console.error(err);
     res.status(500).json({
