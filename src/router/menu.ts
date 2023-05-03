@@ -1,6 +1,6 @@
 import express from "express";
 import {Category, Menu} from "../Model/Category";
-
+import {menuValidation, categoryValidation} from "../validate/schemas";
 const router = express.Router();
 
 // // Get all menu items
@@ -100,7 +100,6 @@ const router = express.Router();
 //   }
 // });
 
-
 // // get the category
 // router.get("/categories", async (req, res) => {
 //   try {
@@ -119,16 +118,12 @@ const router = express.Router();
 // Create a new menu item and a new category
 router.post("/menu", async (req, res) => {
   try {
-  
+    const {error, value} = menuValidation(req.body);
+    if (error) {
+      return res.status(400).json({error: error.details[0].message});
+    }
 
-    // Create a new menu item
-    const menu = new Menu({
-      name: req.body.name,
-      description: req.body.description,
-      category: req.body.category,
-      price: req.body.price,
-      image: req.body.image,
-    });
+    const menu = new Menu(value);
     const savedMenu = await menu.save();
 
     res.status(201).json({
@@ -137,85 +132,86 @@ router.post("/menu", async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err });
+    res.status(500).json({
+      message: "Error creating menu item.",
+      error: err,
+    });
   }
 });
 
-
-
 // Get all menu items
-router.get('/menu', async (req: any, res: any) => {
+router.get("/menu", async (req: any, res: any) => {
   try {
-    const menuItems = await Menu.find().populate('category');
+    const menuItems = await Menu.find().populate("category");
     res.json(menuItems);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Error retrieving menu items.');
+    res.status(500).send("Error retrieving menu items.");
   }
-
 });
 
 // Get menu items by category
-router.get('/menu/:categoryId', async (req: any, res: any) => {
-  const { categoryId } = req.params;
+router.get("/menu/:categoryId", async (req: any, res: any) => {
+  const {categoryId} = req.params;
   const categoryDoc = await Category.findById(categoryId);
   if (!categoryDoc) {
-    return res.status(404).send('Category not found');
+    return res.status(404).send("Category not found");
   }
 
   try {
-    const menuItems = await Menu.find({ category: categoryId }).populate('category');
+    const menuItems = await Menu.find({category: categoryId}).populate(
+      "category"
+    );
     res.json(menuItems);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Error retrieving menu items.');
+    res.status(500).send("Error retrieving menu items.");
   }
-
 });
 
 // get the category
 router.get("/categories", async (req, res) => {
   try {
-    const categories = await Category.find()
+    const categories = await Category.find();
     res.json(categories);
-
-
-    
-
   } catch (error) {
-   
     res.status(500).send({
       message: "Error retrieving categories.",
-      error: error
+      error: error,
     });
   }
-
 });
 
 router.post("/categories", async (req, res) => {
   try {
-    const {name, description} = req.body;
+    const {error, value} = categoryValidation(req.body);
+    if (error) {
+      return res.status(400).json({error: error.details[0].message});
+    }
 
     // Check if the category already exists
-    let category = await Category.findOne({name});
-
+    const category = await Category.findOne({_id: value.id});
     if (category) {
       return res.status(400).json({message: "Category already exists"});
     }
 
-    // Create a new category
-    category = new Category({name, description});
-    await category.save();
+    const newCategory = new Category(value);
+    const savedCategory = await newCategory.save();
 
-    res.status(201).json(category);
-  } catch (error) {
-    console.error(error);
+    res.status(201).json({
+      message: "Category created successfully",
+      category: savedCategory,
+    });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({
-      message: "Error creating category",
-      error,
+      message: "Error creating category.",
+      error: err,
     });
   }
 });
+
+
 
 
 

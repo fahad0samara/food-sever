@@ -11,7 +11,7 @@ interface IMenu extends Document {
 interface ICategory extends Document {
   name: string;
   description: string;
-  items: IMenu[];
+  image: string;
 }
 
 const menuSchema: Schema = new Schema({
