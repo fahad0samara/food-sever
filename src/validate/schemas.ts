@@ -19,7 +19,7 @@ const menuValidation = (data: MenuData) => {
     price: Joi.number().required(),
     category: Joi.string().required(),
     description: Joi.string().required(),
-    image: Joi.string().required(),
+
   });
   return schema.validate(data);
 };
