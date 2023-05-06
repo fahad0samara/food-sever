@@ -1,14 +1,15 @@
 import express from "express";
-const sharp = require("sharp");
+const router = express.Router();
+import sharp from "sharp";
 import {Category, Menu} from "../Model/Category";
 import {menuValidation, categoryValidation} from "../validate/schemas";
-const {
+import {
   containerClient,
   createContainerIfNotExists,
-} = require("../config/azure-config");
-const router = express.Router();
-const uuid = require("uuid");
-const multer = require("multer");
+} from "../config/azure-config";
+
+import uuid from "uuid";
+import multer from "multer";
 // configure Multer to use Azure Blob Storage as the storage engine
 const storage = multer.memoryStorage();
 const upload = multer({storage: storage});
