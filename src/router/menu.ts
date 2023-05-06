@@ -46,10 +46,11 @@ router.post("/menu", upload.single("image"), async (req: any, res) => {
     // Save the image URL in the database
     const menuItem = new Menu({
       name: req.body.name,
-      description: req.body.description,
-      category: req.body.category,
       price: req.body.price,
+      category: req.body.category,
+      description: req.body.description,
       image: blockBlobClient.url,
+      image_url: blockBlobClient.url,
     });
 
     const createdDate = new Date();
