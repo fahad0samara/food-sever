@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import menuRouter from "./router/menu";
 import authRouter from "./router/Auth";
 
+
 const app = express();
 
 // Connect to MongoDB

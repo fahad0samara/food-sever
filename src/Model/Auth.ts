@@ -73,27 +73,7 @@ const adminSchema: Schema<IAdmin> = new mongoose.Schema<IAdmin>({
 
 // Hash password before saving to the database
 
-userSchema.pre("save", async function (this: IUser, next: NextFunction) {
-  try {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(this.password, salt);
-    this.password = hashedPassword;
-    next();
-  } catch (err: any) {
-    next(err);
-  }
-} as any);
 
-adminSchema.pre("save", async function (this: IAdmin, next: NextFunction) {
-  try {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(this.password, salt);
-    this.password = hashedPassword;
-    next();
-  } catch (err: any) {
-    next(err);
-  }
-} as any);
 
 const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);
 const Admin: Model<IAdmin> = mongoose.model<IAdmin>("Admin", adminSchema);
