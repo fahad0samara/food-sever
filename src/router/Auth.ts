@@ -179,6 +179,7 @@ router.get("/me", extractToken, verifyToken, async (req: any, res: any) => {
           email: user.email,
         },
         isAdmin: false,
+
       });
     } else if (admin) {
       return res.status(200).json({
@@ -205,25 +206,19 @@ router.get("/me", extractToken, verifyToken, async (req: any, res: any) => {
 });
 
 //logout
-router.post("/logout", (req, res) => {
-  // Extract the token from the request headers
-  const token = req.headers.authorization?.split(" ")[1];
-
-  if (token) {
-    try {
-      // Verify and decode the token to get the user information
-      const decoded = jwt.verify(token, "your-secret-key");
-      // Perform any necessary logout operations, such as invalidating the token or clearing the session
-
-      res.status(200).json({message: "Logout successful"});
-    } catch (err: any) {
-      res
-        .status(500)
-        .json({message: "Internal server error", error: err.message});
-    }
-  } else {
-    res.status(401).json({message: "Unauthorized"});
+router.post("/logout", extractToken, verifyToken, (req, res) => {
+  const authHeader = req.headers.authorization;
+  console.log(authHeader, "console.log(authHeader);");
+  if (!authHeader) {
+    return res.status(401).json({message: "Unauthorized"});
   }
+  const token = authHeader.split(" ")[1];
+  console.log(token);
+
+  if (!token) {
+    return res.status(401).json({message: "Unauthorized"});
+  }
+  res.status(200).json({message: "Logout successful"});
 });
 
 
