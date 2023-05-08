@@ -11,13 +11,13 @@ router.post("/register", async (req: any, res: any) => {
   // Validate the request body for user registration
   const {error: userError} = userValidation(req.body);
   if (userError) {
-    return res.status(400).json({message: userError.details[0].message});
+    return res.status(404).json({message: userError.details[0].message});
   }
 
   // Validate the request body for admin registration
   const {error: adminError} = adminValidation(req.body);
   if (adminError) {
-    return res.status(400).json({message: adminError.details[0].message});
+    return res.status(407).json({message: adminError.details[0].message});
   }
 
   const {firstName, lastName, email, password, role} = req.body;
@@ -70,59 +70,15 @@ router.post("/register", async (req: any, res: any) => {
         role,
       },
     });
-  } catch (err) {
+  } catch (err: any) {
     // Send an error response to the client
     console.error(err);
     res.status(500).json({
       message: "Something went wrong",
-      err,
+      error: err.message,
     });
   }
 });
-
-//Route to handle user and admin login
-// router.post("/login", async (req, res) => {
-//   // Validate the request body for user login
-//   const {error} = Loginadmin(req.body);
-//   if (error) {
-//     return res.status(400).json({message: error.details[0].message});
-//   }
-
-//   const {email, password, role} = req.body;
-
-//   try {
-//     // Find the user or admin based on the email and
-//     let user;
-//     if (role === "user") {
-//       user = await User.findOne({email});
-//     } else if (role === "admin") {
-//       user = await Admin.findOne({email});
-//     }
-
-//     // Check if the user exists
-//     if (!user) {
-//       return res.status(400).json({message: "Invalid email or password"});
-//     }
-
-//     // Check if the password is correct
-//     const isPasswordValid = await bcrypt.compare(password, user.password);
-//     if (!isPasswordValid) {
-//       return res.status(400).json({message: "Invalid email or password"});
-//     }
-
-//     // Create a JWT token
-//     const token = jwt.sign({userId: user._id, role}, "sdgsdgsdgsg", {
-//       expiresIn: "1h",
-//     });
-
-//     // Return the token to the client
-//     res.status(200).json({token});
-//   } catch (err) {
-//     // Send an error response to the client
-//     console.error(err);
-//     res.status(500).json({message: "Internal server error"});
-//   }
-// });
 
 router.post("/login", async (req, res) => {
   // Validate the request body for login
@@ -147,7 +103,7 @@ router.post("/login", async (req, res) => {
 
     // Check if the user or admin exists
     if (!user) {
-      return res.status(400).json({
+      return res.status(407).json({
         message: `
         the email ${email}
         does not exist`,
@@ -170,18 +126,119 @@ router.post("/login", async (req, res) => {
     res.status(200).json({
       token,
       user: {
+        _id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
       },
-      isAdmin:
-        role === "admin" ? true : false /* Send isAdmin flag to the client */,
+      isAdmin,
     });
-  } catch (err) {
+  } catch (err: any) {
     // Send an error response to the client
     console.error(err);
-    res.status(500).json({message: "Internal server error"});
+    res.status(500).json({
+      message: "Internal server error",
+      error: err.message,
+    });
   }
 });
+
+// Middleware to extract the token from the request headers
+const extractToken = (req: any, res: any, next: any) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (token) {
+    req.token = token;
+  }
+  next();
+};
+
+// Middleware to verify the token and attach the user to the request object
+const verifyToken = (req: any, res: any, next: any) => {
+  try {
+    const verified = jwt.verify(req.token, "your-secret-key") as any;
+    console.log(verified); // Log the verified object
+    req.user = verified.userId; // Assign the userId directly
+    next();
+  } catch (err) {
+    res.status(401).json({message: "Invalid token"});
+  }
+};
+// Route handler to get user and admin info based on the token
+
+router.get("/me", extractToken, verifyToken, async (req: any, res: any) => {
+  try {
+    // Find the user or admin based on the user id
+    const user = await User.findById(req.user);
+    const admin = await Admin.findById(req.user);
+    if (user) {
+      return res.status(200).json({
+        user: {
+          _id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+        },
+        isAdmin: false,
+      });
+    } else if (admin) {
+      return res.status(200).json({
+        user: {
+          _id: admin._id,
+
+          firstName: admin.firstName,
+          lastName: admin.lastName,
+          email: admin.email,
+        },
+        isAdmin: true,
+      });
+    } else {
+      return res.status(404).json({message: "User not found"});
+    }
+  } catch (err: any) {
+    // Send an error response to the client
+    console.error(err);
+    res.status(500).json({
+      message: "Internal server error",
+      error: err.message,
+    });
+  }
+});
+
+//logout
+router.post("/logout", (req, res) => {
+  // Extract the token from the request headers
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (token) {
+    try {
+      // Verify and decode the token to get the user information
+      const decoded = jwt.verify(token, "your-secret-key");
+      // Perform any necessary logout operations, such as invalidating the token or clearing the session
+
+      res.status(200).json({message: "Logout successful"});
+    } catch (err: any) {
+      res
+        .status(500)
+        .json({message: "Internal server error", error: err.message});
+    }
+  } else {
+    res.status(401).json({message: "Unauthorized"});
+  }
+});
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
 
 export default router;
