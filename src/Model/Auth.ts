@@ -4,7 +4,7 @@ import {NextFunction} from "express";
 
 interface IUser extends Document {
   firstName: string;
-  lastName: string;
+
   email: string;
   password: string;
   role: "user" | "admin";
@@ -18,10 +18,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema<IUser>({
     type: String,
     required: true,
   },
-  lastName: {
-    type: String,
-    required: true,
-  },
+
   email: {
     type: String,
     required: true,
@@ -47,10 +44,7 @@ const adminSchema: Schema<IAdmin> = new mongoose.Schema<IAdmin>({
     type: String,
     required: true,
   },
-  lastName: {
-    type: String,
-    required: true,
-  },
+
   email: {
     type: String,
     required: true,

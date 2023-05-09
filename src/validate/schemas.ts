@@ -46,9 +46,10 @@ const categoryValidation = (data: CategoryData) => {
 const userValidation = (data: IUser) => {
   const schema = Joi.object({
     firstName: Joi.string().required(),
-    lastName: Joi.string().required(),
+
     email: Joi.string().required().email(),
     password: Joi.string()
+      .min(6)
       .required()
       .pattern(new RegExp("^[a-zA-Z0-9]{3,30}$")),
 
@@ -60,7 +61,7 @@ const userValidation = (data: IUser) => {
 const adminValidation = (data: IAdmin) => {
   const schema = Joi.object({
     firstName: Joi.string().required(),
-    lastName: Joi.string().required(),
+
     email: Joi.string().required().email(),
     password: Joi.string().required(),
     role: Joi.string().valid("user", "admin").required(),

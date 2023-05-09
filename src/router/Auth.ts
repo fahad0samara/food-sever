@@ -20,7 +20,7 @@ router.post("/register", async (req: any, res: any) => {
     return res.status(407).json({message: adminError.details[0].message});
   }
 
-  const {firstName, lastName, email, password, role} = req.body;
+  const {firstName, email, password, role} = req.body;
 
   try {
     // Check if the email already exists in the appropriate collection
@@ -44,7 +44,7 @@ router.post("/register", async (req: any, res: any) => {
     if (role === "user") {
       const newUser = new User({
         firstName,
-        lastName,
+
         email,
         password: hashedPassword,
         role: "user", // Make sure to set the role explicitly
@@ -53,7 +53,7 @@ router.post("/register", async (req: any, res: any) => {
     } else if (role === "admin") {
       const newAdmin = new Admin({
         firstName,
-        lastName,
+
         email,
         password: hashedPassword,
         role: "admin", // Make sure to set the role explicitly
@@ -65,7 +65,7 @@ router.post("/register", async (req: any, res: any) => {
       message: "Registration successful",
       user: {
         firstName,
-        lastName,
+
         email,
         role,
       },
@@ -128,7 +128,7 @@ router.post("/login", async (req, res) => {
       user: {
         _id: user._id,
         firstName: user.firstName,
-        lastName: user.lastName,
+
         email: user.email,
       },
       isAdmin,
@@ -175,11 +175,10 @@ router.get("/me", extractToken, verifyToken, async (req: any, res: any) => {
         user: {
           _id: user._id,
           firstName: user.firstName,
-          lastName: user.lastName,
+
           email: user.email,
         },
         isAdmin: false,
-
       });
     } else if (admin) {
       return res.status(200).json({
@@ -187,7 +186,7 @@ router.get("/me", extractToken, verifyToken, async (req: any, res: any) => {
           _id: admin._id,
 
           firstName: admin.firstName,
-          lastName: admin.lastName,
+
           email: admin.email,
         },
         isAdmin: true,

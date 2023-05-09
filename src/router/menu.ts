@@ -8,8 +8,9 @@ import {
   createContainerIfNotExists,
 } from "../config/azure-config";
 
-import uuid from "uuid";
+
 import multer from "multer";
+;
 // configure Multer to use Azure Blob Storage as the storage engine
 const storage = multer.memoryStorage();
 const upload = multer({storage: storage});
@@ -34,7 +35,9 @@ router.post("/menu", upload.single("image"), async (req: any, res) => {
     }
 
     // generate a unique filename for the file
-    const filename = `${uuid.v4()}.${file.originalname.split(".").pop()}`;
+    const filename = `${file.originalname}-${Date.now()}`;
+    
+
 
     // create a new block blob with the generated filename
     const blockBlobClient = containerClient.getBlockBlobClient(filename);
