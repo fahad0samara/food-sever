@@ -5,7 +5,7 @@ import helmet from "helmet";
 import mongoose from "mongoose";
 import menuRouter from "./router/menu";
 import authRouter from "./router/Auth";
-
+import cartRouter from "./router/Cart";
 
 const app = express();
 
@@ -33,6 +33,8 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/api", menuRouter);
 app.use("/auth", authRouter);
+app.use("/cart", cartRouter);
+
 
 const port = process.env.PORT || 1337;
 
