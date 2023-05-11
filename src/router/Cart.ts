@@ -30,7 +30,6 @@ router.post("/add", async (req, res) => {
     const itemIndex = cart.items.findIndex(
       item => item.item.toString() === itemId.toString()
     );
-    console.log("Item index:", itemIndex);
 
     // If item already exists in cart, update its quantity
     if (itemIndex !== -1) {
@@ -49,6 +48,34 @@ router.post("/add", async (req, res) => {
 
     res.status(200).json({
       message: "Item added to cart",
+      cart,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: "Server error"});
+  }
+});
+
+/// delete all the cart
+router.delete("/clear/:userId", async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    // Find user's cart
+    const cart = await Cart.findOne({user: userId});
+
+    if (!cart) {
+      return res.status(404).json({message: "Cart not found"});
+    }
+
+    // Clear the cart by removing all items
+    cart.items = [];
+
+    // Save the updated cart
+    await cart.save();
+
+    res.status(200).json({
+      message: "Cart cleared",
       cart,
     });
   } catch (error) {
@@ -84,60 +111,54 @@ router.get("/cart/:userId", async (req, res) => {
   }
 });
 
-
-// This route updates the quantity of an item in the user's cart.
-router.patch("/update/:userId/:itemId", async (req, res) => {
-  // Get the user ID and item ID from the request parameters.
-  const { userId, itemId } = req.params;
-  // Get the quantity of the item from the request body.
-  const { quantity } = req.body;
+router.put("/updateQuantity/:userId/:itemId", async (req, res) => {
+  const {userId, itemId} = req.params;
+  const {quantity} = req.body;
 
   try {
-    // Find the user's cart.
-    const cart = await Cart.findOne({ user: userId });
+    // Find user and cart
+    const user = await User.findById(userId);
+    const cart = await Cart.findOne({user: userId});
 
-    // If the cart does not exist, return an error.
-    if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
+    // Check if user and cart exist
+    if (!user || !cart) {
+      return res.status(404).json({message: "User or cart not found"});
     }
 
-    // Find the index of the item in the cart.
+    // Find the item in the cart
     const itemIndex = cart.items.findIndex(
-      (item) => item.item.toString() === itemId
+      item => item.item.toString() === itemId
     );
-
-    // If the item does not exist in the cart, return an error.
     if (itemIndex === -1) {
-      return res.status(404).json({ message: "Item not found in cart" });
+      return res.status(404).json({message: "Item not found in cart"});
     }
 
-    // Update the quantity of the item in the cart.
+    // Update the quantity of the item
     cart.items[itemIndex].quantity = quantity;
 
-    // Save the cart to the database.
+    // Save the updated cart
     await cart.save();
 
-    // Return a success message.
     res.status(200).json({
       message: "Item quantity updated in cart",
       cart,
     });
   } catch (error) {
-    // Log the error.
     console.error(error);
-    // Return an error message.
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({message: "Server error"});
   }
 });
 
-
 // This route removes an item from the user's cart.
 router.delete("/delete/:userId/:itemId", async (req, res) => {
+  // Get the user ID and item ID from the request parameters.
   const {userId, itemId} = req.params;
 
   try {
     // Find the user's cart.
+    console.log("userId:", userId);
     const cart = await Cart.findOne({user: userId});
+    console.log("cart:", cart);
 
     // If the cart does not exist, return an error.
     if (!cart) {
@@ -145,26 +166,33 @@ router.delete("/delete/:userId/:itemId", async (req, res) => {
     }
 
     // Find the item in the cart.
-    const itemToRemove = cart.items.find(
-      item => item._id.toString() === itemId
-    );
+    const item = cart.items.find(item => item.item._id.toString() === itemId);
+    console.log("item:", item);
 
     // If the item does not exist in the cart, return an error.
-    if (!itemToRemove) {
+    if (!item) {
       return res.status(404).json({message: "Item not found in cart"});
     }
 
     // Remove the item from the cart.
-    cart.items = cart.items.filter(item => item._id.toString() !== itemId);
+    cart.items = cart.items.filter(
+      cartItem => cartItem.item._id.toString() !== item.item._id.toString()
+    );
 
-    // Save the updated cart to the database.
+    // Save the cart to the database.
     await cart.save();
 
     // Return a success message.
-    res.status(200).json({message: "Item removed from cart", cart});
+    res.status(200).json({
+      message: "Item removed from cart",
+      cart,
+    });
   } catch (error) {
     // Return an error message.
-    res.status(500).json({message: "Server error", error});
+    res.status(500).json({
+      message: "Server error",
+      error,
+    });
   }
 });
 
