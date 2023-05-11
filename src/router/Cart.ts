@@ -84,4 +84,91 @@ router.get("/cart/:userId", async (req, res) => {
   }
 });
 
+
+// This route updates the quantity of an item in the user's cart.
+router.patch("/update/:userId/:itemId", async (req, res) => {
+  // Get the user ID and item ID from the request parameters.
+  const { userId, itemId } = req.params;
+  // Get the quantity of the item from the request body.
+  const { quantity } = req.body;
+
+  try {
+    // Find the user's cart.
+    const cart = await Cart.findOne({ user: userId });
+
+    // If the cart does not exist, return an error.
+    if (!cart) {
+      return res.status(404).json({ message: "Cart not found" });
+    }
+
+    // Find the index of the item in the cart.
+    const itemIndex = cart.items.findIndex(
+      (item) => item.item.toString() === itemId
+    );
+
+    // If the item does not exist in the cart, return an error.
+    if (itemIndex === -1) {
+      return res.status(404).json({ message: "Item not found in cart" });
+    }
+
+    // Update the quantity of the item in the cart.
+    cart.items[itemIndex].quantity = quantity;
+
+    // Save the cart to the database.
+    await cart.save();
+
+    // Return a success message.
+    res.status(200).json({
+      message: "Item quantity updated in cart",
+      cart,
+    });
+  } catch (error) {
+    // Log the error.
+    console.error(error);
+    // Return an error message.
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+// This route removes an item from the user's cart.
+router.delete("/delete/:userId/:itemId", async (req, res) => {
+  const {userId, itemId} = req.params;
+
+  try {
+    // Find the user's cart.
+    const cart = await Cart.findOne({user: userId});
+
+    // If the cart does not exist, return an error.
+    if (!cart) {
+      return res.status(404).json({message: "Cart not found"});
+    }
+
+    // Find the item in the cart.
+    const itemToRemove = cart.items.find(
+      item => item._id.toString() === itemId
+    );
+
+    // If the item does not exist in the cart, return an error.
+    if (!itemToRemove) {
+      return res.status(404).json({message: "Item not found in cart"});
+    }
+
+    // Remove the item from the cart.
+    cart.items = cart.items.filter(item => item._id.toString() !== itemId);
+
+    // Save the updated cart to the database.
+    await cart.save();
+
+    // Return a success message.
+    res.status(200).json({message: "Item removed from cart", cart});
+  } catch (error) {
+    // Return an error message.
+    res.status(500).json({message: "Server error", error});
+  }
+});
+
+
+
+
 export default router;
