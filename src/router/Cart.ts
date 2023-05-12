@@ -3,7 +3,9 @@ import {User} from "../Model/Auth";
 import {Menu} from "../Model/Category";
 import {Cart, CartItem} from "../Model/Cart";
 const router = express.Router();
-
+const stripe = require("stripe")(
+  "sk_test_51L9ELNKirGI4xLuFFgSzzyzl0WGZNb1YQz0QgW11XAEzNfK2EanmnH09kNKrd7j7I6IS4H9dGZ7HnsL8Aow3D5OF00oInvXMYq"
+);
 router.post("/add", async (req, res) => {
   const {userId, itemId, quantity} = req.body;
 
@@ -196,7 +198,34 @@ router.delete("/delete/:userId/:itemId", async (req, res) => {
   }
 });
 
+// Endpoint to handle the Stripe payment
+// Route to handle the payment process
+router.post("/checkout", async (req, res) => {
+  const paymentInfo = req.body;
 
+  try {
+    // Create a payment intent with the Stripe API
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 1000, // The amount in cents (e.g., $10.00)
+      currency: "usd",
+      payment_method_types: ["card"],
+      metadata: {
+        // Add any additional metadata you need
+        userId: paymentInfo.userId,
+        email: paymentInfo.email,
+      },
+    });
+    console.log(paymentIntent);
 
+    // Send the client secret to the client-side for completing the payment
+    res.json({clientSecret: paymentIntent.client_secret});
+  } catch (error) {
+    res
+      .status(500)
+      .json({error: "An error occurred while processing the payment"});
+  }
+});
 
 export default router;
+
+
