@@ -1,16 +1,14 @@
 import express from "express";
 const router = express.Router();
 import sharp from "sharp";
-import {Category, Menu} from "../Model/Category";
+import {Category, Menu, Review} from "../Model/Category";
 import {menuValidation, categoryValidation} from "../validate/schemas";
 import {
   containerClient,
   createContainerIfNotExists,
 } from "../config/azure-config";
 
-
 import multer from "multer";
-;
 // configure Multer to use Azure Blob Storage as the storage engine
 const storage = multer.memoryStorage();
 const upload = multer({storage: storage});
@@ -36,8 +34,6 @@ router.post("/menu", upload.single("image"), async (req: any, res) => {
 
     // generate a unique filename for the file
     const filename = `${file.originalname}-${Date.now()}`;
-    
-
 
     // create a new block blob with the generated filename
     const blockBlobClient = containerClient.getBlockBlobClient(filename);
@@ -72,9 +68,6 @@ router.post("/menu", upload.single("image"), async (req: any, res) => {
     });
   }
 });
-
-
-
 
 // Get all menu items
 router.get("/menu", async (req: any, res: any) => {
@@ -149,6 +142,50 @@ router.post("/categories", async (req, res) => {
     });
   }
 });
+
+// Route for adding a new review to a menu
+router.post("/menu/:menuId/reviews", async (req: any, res: any) => {
+  const {user, rating, text} = req.body;
+  const menuId = req.params.menuId;
+  try {
+    const menu = await Menu.findById(menuId);
+    if (!menu) {
+      return res.status(404).send("Menu item not found");
+    }
+    // Create a new Review document
+    const review = new Review({
+      user,
+      rating,
+      text,
+      menu: menuId,
+    });
+
+    // Save the new Review document
+    const savedReview = await review.save();
+    // Add the new Review document to the reviews array of the Menu document
+    const updatedMenu = await Menu.findByIdAndUpdate(
+      menuId,
+      {
+        $push: {reviews: savedReview._id},
+      },
+      {new: true}
+    )
+      .populate("category")
+      .populate("reviews")
+      .exec();
+    res.status(201).json(updatedMenu);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error adding review.");
+  }
+});
+
+    
+
+  
+
+
+
 
 // // Create default caegories
 //   const defaultCategories = [

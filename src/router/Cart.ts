@@ -222,9 +222,13 @@ router.post("/checkout", async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .json({error: "An error occurred while processing the payment"});
+      .json({
+        message: "An error occurred while trying to process the payment",
+        error,
+      });
   }
 });
+;
 
 export default router;
 
