@@ -14,6 +14,15 @@ interface ICategory extends Document {
   image: string;
 }
 
+
+interface IReview extends Document {
+  user: Schema.Types.ObjectId;
+  menu: Schema.Types.ObjectId;
+  rating: number;
+  text: string;
+  created_at: Date;
+}
+
 const menuSchema = new mongoose.Schema(
   {
     name: {
@@ -45,6 +54,13 @@ const menuSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+
+    reviews: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Review",
+      },
+    ],
   },
   {
     timestamps: true,
@@ -63,10 +79,36 @@ const categorySchema: Schema = new Schema({
   },
 });
 
+const reviewSchema: Schema<IReview> = new Schema<IReview>({
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  menu: {
+    type: Schema.Types.ObjectId,
+    ref: "Menu",
+    required: true,
+  },
+  rating: {
+    type: Number,
+    required: true,
+  },
+  text: {
+    type: String,
+    required: true,
+  },
+  created_at: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
 const Menu: Model<IMenu> = mongoose.model<IMenu>("Menu", menuSchema);
 const Category: Model<ICategory> = mongoose.model<ICategory>(
   "Category",
   categorySchema
 );
+const Review: Model<IReview> = mongoose.model<IReview>("Review", reviewSchema);
 
-export {Menu, Category};
+export {Menu, Category, Review};

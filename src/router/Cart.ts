@@ -200,13 +200,14 @@ router.delete("/delete/:userId/:itemId", async (req, res) => {
 
 // Endpoint to handle the Stripe payment
 // Route to handle the payment process
+
 router.post("/checkout", async (req, res) => {
   const paymentInfo = req.body;
 
   try {
     // Create a payment intent with the Stripe API
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 1000, // The amount in cents (e.g., $10.00)
+      amount: paymentInfo.totalAmount * 100, // The amount in cents (e.g., $10.00)
       currency: "usd",
       payment_method_types: ["card"],
       metadata: {
@@ -215,7 +216,6 @@ router.post("/checkout", async (req, res) => {
         email: paymentInfo.email,
       },
     });
-    console.log(paymentIntent);
 
     // Send the client secret to the client-side for completing the payment
     res.json({clientSecret: paymentIntent.client_secret});
