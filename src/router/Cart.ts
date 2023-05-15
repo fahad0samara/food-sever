@@ -19,7 +19,7 @@ router.post("/add", async (req, res) => {
       return res.status(404).json({message: "User or menu item not found"});
     }
 
-    // Find user's cart or create new cart if it doesn't exist
+    // Find user's cart or create a new cart if it doesn't exist
     let cart = await Cart.findOne({user: user._id});
     if (!cart) {
       cart = new Cart({
@@ -37,7 +37,7 @@ router.post("/add", async (req, res) => {
     if (itemIndex !== -1) {
       cart.items[itemIndex].quantity += quantity;
     } else {
-      // Otherwise, add new item to cart
+      // Otherwise, add a new item to the cart
       const cartItem = new CartItem({
         item: menuItem._id,
         quantity,
@@ -45,7 +45,7 @@ router.post("/add", async (req, res) => {
       cart.items.push(cartItem);
     }
 
-    // Save cart to database
+    // Save the cart to the database
     await cart.save();
 
     res.status(200).json({
@@ -220,16 +220,15 @@ router.post("/checkout", async (req, res) => {
     // Send the client secret to the client-side for completing the payment
     res.json({clientSecret: paymentIntent.client_secret});
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "An error occurred while trying to process the payment",
-        error,
-      });
+    res.status(500).json({
+      message: "An error occurred while trying to process the payment",
+      error,
+    });
   }
 });
-;
-
 export default router;
+
+
+
 
 
