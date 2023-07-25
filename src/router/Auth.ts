@@ -226,7 +226,101 @@ router.post("/logout", extractToken, verifyToken, (req, res) => {
 
 
 
-  
+  // PUT route to make a user an admin
+router.put("/make-admin/:userId", async (req: any, res: any) => {
+  try {
+    const {userId} = req.params;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({message: "User not found"});
+    }
+
+
+
+    const admin = new Admin({
+      firstName: user.firstName,
+      email: user.email,
+      password: user.password,
+   
+      role: "admin",
+    });
+    await admin.save();
+
+    await User.findByIdAndDelete(userId);
+
+    res.status(200).json({message: "User is now an admin"});
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({
+      message: "Internal server error",
+      error: err.message,
+    });
+  }
+});
+
+// DELETE route to delete a user by ID
+router.delete("/users/:userId", async (req, res) => {
+  try {
+    const {userId} = req.params;
+    const user = await User.findByIdAndRemove(userId);
+
+    if (!user) {
+      return res.status(404).json({message: "User not found"});
+    }
+
+    // Delete the user's cart
+    await Cart.findOneAndRemove({user: userId});
+
+    // Delete the user's orders
+    await Order.deleteMany({user: userId});
+
+    res.status(200).json({message: "User deleted successfully"});
+  } catch (error: any) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+});
+
+// DELETE route to delete an admin by ID
+router.delete("/admins/:adminId", async (req, res) => {
+  try {
+    const {adminId} = req.params;
+    const admin = await Admin.findByIdAndRemove(adminId);
+    if (!admin) {
+      return res.status(404).json({message: "Admin not found"});
+    }
+    res.status(200).json({message: "Admin deleted successfully"});
+  } catch (error: any) {
+    console.error("Error deleting admin:", error);
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+});
+
+
+
+
+// GET route to get all users and admins
+router.get("/users-admins", async (req, res) => {
+  try {
+    const users = await User.find({}, "_id firstName email role");
+    const admins = await Admin.find({}, "_id firstName email role");
+    let allUsers = [...users, ...admins];
+    res.status(200).json({users: allUsers});
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({
+      message: "Internal server error",
+
+      error: err.message,
+    });
+  }
+});
 
 
 
