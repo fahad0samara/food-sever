@@ -5,6 +5,7 @@ require("dotenv").config();
 import jwt from "jsonwebtoken";
 import {User, Admin} from "../Model/Auth";
 import {userValidation, adminValidation, Loginadmin} from "../validate/schemas";
+import { Cart } from "../Model/Cart";
 
 // Route to handle user and admin registration requests
 router.post("/register", async (req: any, res: any) => {
@@ -271,8 +272,8 @@ router.delete("/users/:userId", async (req, res) => {
     // Delete the user's cart
     await Cart.findOneAndRemove({user: userId});
 
-    // Delete the user's orders
-    await Order.deleteMany({user: userId});
+    // // Delete the user's orders
+    // await Order.deleteMany({user: userId});
 
     res.status(200).json({message: "User deleted successfully"});
   } catch (error: any) {
