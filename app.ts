@@ -3,9 +3,9 @@ import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
 import mongoose from "mongoose";
-import menuRouter from "./router/menu";
-import authRouter from "./router/Auth";
-import cartRouter from "./router/Cart";
+import menuRouter from "./src/router/menu";
+import authRouter from "./src/router/Auth";
+import cartRouter from "./src/router/Cart";
 require("dotenv").config();
 const app = express();
 
