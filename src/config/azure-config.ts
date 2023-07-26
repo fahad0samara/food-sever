@@ -1,7 +1,8 @@
 const {BlobServiceClient} = require("@azure/storage-blob");
-
+require("dotenv").config();
 const blobServiceClient = BlobServiceClient.fromConnectionString(
-  "DefaultEndpointsProtocol=https;AccountName=fahadtorg;AccountKey=fEMmu2yIHwvFS6fXIIQ0Wc+aF8jcMD+BVsIOVk1ngzunUei15auf3xxiVcNej1dA3jBDf2PxMUpu+AStXiZhdg==;EndpointSuffix=core.windows.net"
+  process.env.AZURE_STORAGE_CONNECTION_STRING
+
 );
 
 const containerName = "menu-items";

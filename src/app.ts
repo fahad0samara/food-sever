@@ -6,19 +6,20 @@ import mongoose from "mongoose";
 import menuRouter from "./router/menu";
 import authRouter from "./router/Auth";
 import cartRouter from "./router/Cart";
-
+require("dotenv").config();
 const app = express();
 
 // Connect to MongoDB
+
+const mongodbUri = process.env.MONGODB_URI;
+if (!mongodbUri) {
+  throw new Error("MONGODB_URI environment variable is not set.");
+}
+
 mongoose
-  .connect(
-    "mongodb+srv://fahad:fahad@cluster.zwkjqce.mongodb.net/back-end-helthe",
-    {
-      useUnifiedTopology: true,
-    } as any
-  )
+  .connect(mongodbUri)
   .then(() => console.log("MongoDB connected"))
-  .catch(error => console.error(error));
+  .catch((error) => console.error(error));
 
 app.use(cors());
 app.use(morgan("common"));
@@ -36,7 +37,7 @@ app.use("/auth", authRouter);
 app.use("/cart", cartRouter);
 
 
-const port = process.env.PORT || 1337;
+const port = process.env.PORT || 8080;
 
 app.listen(port, () => {
   console.log(`Listening at http://localhost:${port}`);
