@@ -19,7 +19,7 @@ if (!mongodbUri) {
 mongoose
   .connect(mongodbUri)
   .then(() => console.log("MongoDB connected"))
-  .catch((error) => console.error(error));
+  .catch(error => console.error(error));
 
 app.use(cors());
 app.use(morgan("common"));
@@ -31,17 +31,13 @@ app.get("/", (req: Request, res: Response) => {
     message: `
     Welcome to Food App!
     
-    `
-    
-
-   
+    `,
   });
 });
 
 app.use("/api", menuRouter);
 app.use("/auth", authRouter);
 app.use("/cart", cartRouter);
-
 
 const port = process.env.PORT || 8080;
 
