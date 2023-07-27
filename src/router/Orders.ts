@@ -2,7 +2,7 @@ import express, {Request, Response} from "express";
 import {Order} from "../Model/Orders";
 import {Cart} from "../Model/Cart";
 import {Admin, User} from "../Model/Auth";
-import {Category} from "../Model/Category";
+import {Category, Menu} from "../Model/Category";
 const router = express.Router();
 router.get("/orders", async (req, res) => {
   try {
@@ -68,20 +68,31 @@ router.get("/count", async (req, res) => {
     const orderCount = await Order.countDocuments();
     const CartCount = await Cart.countDocuments();
     const CategoryCount = await Category.countDocuments();
-    const UserCount = await User.countDocuments();
+      const UserCount = await User.countDocuments();
+      const AdminCount = await Admin.countDocuments()
+      const MenuCount = await Menu.countDocuments();
+
+
+      
+      
 
     // In a real scenario, you would fetch the counts for the previous month from your database
     // For demonstration purposes, let's assume the previous month's counts are as follows:
-    const prevOrderCount = 100;
+      const prevOrderCount = 100;
+      
     const prevCartCount = 80;
     const prevCategoryCount = 120;
-    const prevUserCount = 200;
+      const prevUserCount = 200;
+      
     const prevSalesCount = 400; // Hypothetical previous month's sales count
     const salesCount = 600; // Hypothetical current month's sales count
     const prevRevenueCount = 5000; // Hypothetical previous month's revenue count
     const revenueCount = 7500; // Hypothetical current month's revenue count
     const prevExpenseCount = 2000; // Hypothetical previous month's expense count
-    const expenseCount = 2500; // Hypothetical current month's expense count
+      const expenseCount = 2500; // Hypothetical current month's expense count
+
+
+      
 
     const orderPercentageDiff =
       ((orderCount - prevOrderCount) / prevOrderCount) * 100;
@@ -96,17 +107,23 @@ router.get("/count", async (req, res) => {
     const revenuePercentageDiff =
       ((revenueCount - prevRevenueCount) / prevRevenueCount) * 100;
     const expensePercentageDiff =
-      ((expenseCount - prevExpenseCount) / prevExpenseCount) * 100;
+          ((expenseCount - prevExpenseCount) / prevExpenseCount) * 100;
+      
+      
 
     res.status(200).json({
       message: "Counts retrieved successfully",
       orderCount: orderCount,
       CartCount: CartCount,
-      UserCount: UserCount,
+        UserCount: UserCount,
+        AdminCount: AdminCount,
+
+        MenuCount: MenuCount,
       CategoryCount: CategoryCount,
       SalesCount: salesCount,
       RevenueCount: revenueCount,
-      ExpenseCount: expenseCount,
+        ExpenseCount: expenseCount,
+      
       orderPercentageDiff: orderPercentageDiff,
       cartPercentageDiff: cartPercentageDiff,
       categoryPercentageDiff: categoryPercentageDiff,
