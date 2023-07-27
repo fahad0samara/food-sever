@@ -6,6 +6,10 @@ import mongoose from "mongoose";
 import menuRouter from "./src/router/menu";
 import authRouter from "./src/router/Auth";
 import cartRouter from "./src/router/Cart";
+import orderRouter from "./src/router/Orders";
+
+
+
 require("dotenv").config();
 const app = express();
 
@@ -38,6 +42,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api", menuRouter);
 app.use("/auth", authRouter);
 app.use("/cart", cartRouter);
+app.use("/orders", orderRouter);
 
 const port = process.env.PORT || 8080;
 
