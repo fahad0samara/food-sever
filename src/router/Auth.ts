@@ -120,7 +120,7 @@ router.post("/login", async (req, res) => {
     // Create a JWT token
     const role = isAdmin ? "admin" : "user";
     const token = jwt.sign({userId: user._id, role}, "your-secret-key", {
-      expiresIn: "1h",
+      expiresIn: "10d",
     });
 
     // Return the token to the client
