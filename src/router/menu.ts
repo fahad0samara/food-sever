@@ -69,18 +69,6 @@ router.post("/menu", upload.single("image"), async (req: any, res) => {
   }
 });
 
-// Get all menu items
-router.get("/menu", async (req: any, res: any) => {
-  try {
-    const menuItems = await Menu.find().populate("category");
-    res.json(menuItems);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Error retrieving menu items.");
-  }
-});
-
-// Get all menu items
 
 // Get menu items by category
 router.get("/menu/:categoryId", async (req: any, res: any) => {
@@ -100,6 +88,36 @@ router.get("/menu/:categoryId", async (req: any, res: any) => {
     res.status(500).send("Error retrieving menu items.");
   }
 });
+
+
+
+router.get("/menu", async (req: any, res: any) => {
+  try {
+    const page = parseInt(req.query.page) || 1; // Current page number
+    const limit = parseInt(req.query.limit) || 10; // Number of items per page
+
+    const skip = (page - 1) * limit; // Number of items to skip
+
+    const totalItems = await Menu.countDocuments();
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const menuItems = await Menu.find()
+      .populate("category")
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      data: menuItems,
+      currentPage: page,
+      totalPages: totalPages,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error retrieving menu items.");
+  }
+});
+
+
 
 // get the category
 router.get("/categories", async (req, res) => {
