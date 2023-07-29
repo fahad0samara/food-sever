@@ -143,6 +143,125 @@ router.post("/categories", async (req, res) => {
   }
 });
 
+
+
+router.delete("/menu/:itemId", async (req, res) => {
+  const {itemId} = req.params;
+
+  try {
+    const menuItem = await Menu.findById(itemId);
+    if (!menuItem) {
+      return res.status(404).json({message: "Menu item not found"});
+    }
+
+    // Delete the corresponding image from Azure Blob Storage
+    const imageUrl = menuItem.image;
+    const imageName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+    const blockBlobClient = containerClient.getBlockBlobClient(imageName);
+    await blockBlobClient.delete();
+
+    // Delete the menu item from the database
+    await Menu.deleteOne({_id: itemId});
+
+    res.json({message: "Menu item deleted successfully"});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Error deleting menu item.",
+      error,
+    });
+  }
+});
+
+// Update a menu item
+// Update a menu item
+router.put("/menu/:itemId", upload.single("image"), async (req, res) => {
+  const {itemId} = req.params;
+
+  try {
+    const {error} = menuValidation(req.body);
+    if (error) {
+      return res.status(400).json({error: error.details[0].message});
+    }
+
+    const file = req.file;
+
+    if (!file) {
+      // If no new image is uploaded, use the existing image
+      let menuItem = await Menu.findById(itemId);
+      if (!menuItem) {
+        return res.status(404).json({message: "Menu item not found"});
+      }
+      const updatedMenuItem = {
+        name: req.body.name,
+        price: req.body.price,
+        category: req.body.category,
+        description: req.body.description,
+        image: menuItem.image,
+      };
+      await Menu.findByIdAndUpdate(itemId, updatedMenuItem);
+      return res.json({message: "Menu item updated successfully"});
+    }
+
+    // compress the image using Sharp
+    const compressedImage = await sharp(file.buffer)
+      .resize(500, 500)
+      .webp({
+        quality: 80,
+        lossless: true,
+        nearLossless: false,
+      })
+      .toBuffer();
+
+    // generate a unique filename for the file
+    const filename = `${file.originalname}-${Date.now()}`;
+
+    // create a new block blob with the generated filename
+    const blockBlobClient = containerClient.getBlockBlobClient(filename);
+
+    // upload the compressed image to Azure Blob Storage
+    await blockBlobClient.upload(compressedImage, compressedImage.length);
+
+    // Delete the existing image from Azure Blob Storage
+    let menuItem = await Menu.findById(itemId);
+    if (!menuItem) {
+      return res.status(404).json({message: "Menu item not found"});
+    }
+    const imageUrl = menuItem.image;
+    const imageName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+    const existingBlockBlobClient =
+      containerClient.getBlockBlobClient(imageName);
+    await existingBlockBlobClient.delete();
+
+    // Save the updated image URL in the database
+    const updatedMenuItem = {
+      name: req.body.name,
+      price: req.body.price,
+      category: req.body.category,
+      description: req.body.description,
+      image: blockBlobClient.url,
+      image_url: blockBlobClient.url, // Add the image_url property
+    };
+
+    await Menu.findByIdAndUpdate(itemId, updatedMenuItem);
+
+    res.json({message: "Menu item updated successfully"});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Error updating menu item.",
+      error,
+    });
+  }
+});
+
+
+
+
+
+
+
+
 // Route for adding a new review to a menu
 router.post("/menu/:menuId/reviews", async (req: any, res: any) => {
   const {user, rating, text} = req.body;
@@ -187,20 +306,6 @@ router.post("/menu/:menuId/reviews", async (req: any, res: any) => {
 
 
 
-// // Create default caegories
-//   const defaultCategories = [
-//     { name: 'Appetizers', description: 'Start your meal with these delicious bites', isDefault: true },
-//     { name: 'Entrees', description: 'The main course of your meal', isDefault: true },
-//     { name: 'Desserts', description: 'Indulge your sweet tooth with our desserts', isDefault: true },
-//   ];
 
-// try {
-//   defaultCategories.forEach(async (category) => {
-//     const categoryDoc = await Category.create(category);
-//     console.log(`${categoryDoc.name} category created`);
-//   });
-// } catch (error) {
-//   console.error(error);
-// }
 
 export default router;
