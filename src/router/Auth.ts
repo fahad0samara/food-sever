@@ -307,21 +307,42 @@ router.delete("/admins/:adminId", async (req, res) => {
 
 
 // GET route to get all users and admins
+const ITEMS_PER_PAGE = 10; // Number of items per page
+
 router.get("/users-admins", async (req, res) => {
   try {
-    const users = await User.find({}, "_id firstName email role");
-    const admins = await Admin.find({}, "_id firstName email role");
-    let allUsers = [...users, ...admins];
-    res.status(200).json({users: allUsers});
+    const page = parseInt(req.query.page as string, 10) || 1; // Type assertion to treat req.query.page as string
+    const skip = (page - 1) * ITEMS_PER_PAGE; // Calculate the number of items to skip based on the requested page
+
+    const usersCount = await User.countDocuments();
+    const adminsCount = await Admin.countDocuments();
+
+    const users = await User.find({}, "_id firstName email role")
+      .skip(skip)
+      .limit(ITEMS_PER_PAGE);
+
+    const admins = await Admin.find({}, "_id firstName email role")
+      .skip(skip)
+      .limit(ITEMS_PER_PAGE);
+
+    const allUsers = [...users, ...admins];
+
+    const totalPages = Math.ceil((usersCount + adminsCount) / ITEMS_PER_PAGE);
+
+    res.status(200).json({
+      users: allUsers,
+      currentPage: page,
+      totalPages: totalPages,
+    });
   } catch (err: any) {
     console.error(err);
     res.status(500).json({
       message: "Internal server error",
-
       error: err.message,
     });
   }
 });
+
 
 
 
