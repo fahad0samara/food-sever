@@ -317,11 +317,11 @@ router.get("/users-admins", async (req, res) => {
     const usersCount = await User.countDocuments();
     const adminsCount = await Admin.countDocuments();
 
-    const users = await User.find({}, "_id firstName email role")
+    const users = await User.find({}, "_id firstName email role created_at")
       .skip(skip)
       .limit(ITEMS_PER_PAGE);
 
-    const admins = await Admin.find({}, "_id firstName email role")
+    const admins = await Admin.find({}, "_id firstName email role created_at")
       .skip(skip)
       .limit(ITEMS_PER_PAGE);
 
@@ -333,6 +333,7 @@ router.get("/users-admins", async (req, res) => {
       users: allUsers,
       currentPage: page,
       totalPages: totalPages,
+      itemPerPage: ITEMS_PER_PAGE,
     });
   } catch (err: any) {
     console.error(err);
