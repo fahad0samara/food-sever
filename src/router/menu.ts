@@ -41,7 +41,7 @@ router.post("/menu", upload.single("image"), async (req: any, res) => {
     // upload the compressed image to Azure Blob Storage
     await blockBlobClient.upload(compressedImage, compressedImage.length);
 
-    console.log(`Image uploaded to: ${blockBlobClient.url}`);
+
 
     // Save the image URL in the database
     const menuItem = new Menu({
@@ -69,6 +69,23 @@ router.post("/menu", upload.single("image"), async (req: any, res) => {
   }
 });
 
+// get the menu
+router.get("/menu/user", async (req, res) => {
+  try {
+    const menuItems = await Menu.find()
+      .populate("category")
+  
+      .exec();
+    res.json(menuItems);
+  } catch (error) {
+    res.status(500).send({
+      message: "Error retrieving menu items.",  
+      error: error,
+    });
+  }
+});
+
+
 
 // Get menu items by category
 router.get("/menu/:categoryId", async (req: any, res: any) => {
@@ -88,6 +105,10 @@ router.get("/menu/:categoryId", async (req: any, res: any) => {
     res.status(500).send("Error retrieving menu items.");
   }
 });
+
+
+
+
 
 
 
