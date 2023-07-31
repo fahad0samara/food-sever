@@ -168,32 +168,7 @@ router.get("/recent-orders", async (req, res) => {
   }
 });
 
-router.get("/recent-registrations", async (req: any, res: any) => {
-  try {
-    const limit = 10; // Define the maximum number of recent registrations to display
 
-    // Find the most recent user and admin registrations and select specific fields
-    const recentUsers = await User.find()
-      .sort({timestamp: -1})
-      .limit(limit)
-      .select("role email firstName");
-    const recentAdmins = await Admin.find()
-      .sort({timestamp: -1})
-      .limit(limit)
-      .select("role email firstName");
-
-    res.status(200).json({
-      recentUsers,
-      recentAdmins,
-    });
-  } catch (err: any) {
-    console.error(err);
-    res.status(500).json({
-      message: "Internal server error",
-      error: err.message,
-    });
-  }
-});
 
 router.get("/most-ordered-items", async (req, res) => {
   try {

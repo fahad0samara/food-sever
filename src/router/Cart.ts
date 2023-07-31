@@ -2,6 +2,7 @@ import express, {Request, Response} from "express";
 import {User} from "../Model/Auth";
 import {Menu} from "../Model/Category";
 import {Cart, CartItem} from "../Model/Cart";
+import { Order } from "../Model/Orders";
 const router = express.Router();
 const stripe = require("stripe")(
   "sk_test_51L9ELNKirGI4xLuFFgSzzyzl0WGZNb1YQz0QgW11XAEzNfK2EanmnH09kNKrd7j7I6IS4H9dGZ7HnsL8Aow3D5OF00oInvXMYq"
@@ -160,7 +161,7 @@ router.delete("/delete/:userId/:itemId", async (req, res) => {
     // Find the user's cart.
     console.log("userId:", userId);
     const cart = await Cart.findOne({user: userId});
-    console.log("cart:", cart);
+
 
     // If the cart does not exist, return an error.
     if (!cart) {
@@ -201,6 +202,8 @@ router.delete("/delete/:userId/:itemId", async (req, res) => {
 // Endpoint to handle the Stripe payment
 // Route to handle the payment process
 
+// Route to handle the payment process
+
 router.post("/checkout", async (req, res) => {
   const paymentInfo = req.body;
 
@@ -211,18 +214,28 @@ router.post("/checkout", async (req, res) => {
       currency: "usd",
       payment_method_types: ["card"],
       metadata: {
-        // Add any additional metadata you need
         userId: paymentInfo.userId,
         email: paymentInfo.email,
       },
     });
 
-    // Send the client secret to the client-side for completing the payment
-    res.json({clientSecret: paymentIntent.client_secret});
-  } catch (error) {
+    // Save the order to the database
+    const order = new Order({
+      user: paymentInfo.userId,
+      items: paymentInfo.items, // Assuming paymentInfo.items contains the menu item IDs for the order
+      totalAmount: paymentInfo.totalAmount,
+    });
+    await order.save();
+
+    // Send the client secret and order ID to the client-side for completing the payment
+    res.json({
+      clientSecret: paymentIntent.client_secret,
+      orderId: order._id,
+    });
+  } catch (error:any) {
     res.status(500).json({
       message: "An error occurred while trying to process the payment",
-      error,
+      error: error.message
     });
   }
 });
